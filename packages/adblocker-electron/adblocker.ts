@@ -268,7 +268,73 @@ export class ElectronBlocker extends FiltersEngine {
   };
 
   private injectScripts(sender: Electron.WebContents, script: string): void {
+    /* I should be able to execute a console.log error mesage using sender.executeJavaScript. */
+        // Dynamically injected scripts scripts can be difficult to find later in
+        // the debugger. Console logs simplifies setting up breakpoints if needed.
+        let debugMarker;
+        if (this.config.debug) {
+            debugMarker = (text: any) => `console.log('[ADBLOCKER-DEBUG]:', ${JSON.stringify(text)});`;
+        }
+        else {
+            debugMarker = () => '';
+        }
+        // the scriptlet code that contains patches for the website
+        const codeRunningInPage = `(function(){
+${debugMarker('run scriptlets (executing in "page world")')}
+${script}}
+)()`;
+        // wrapper to break the "isolated world" so that the patching operates
+        // on the website, not on the content script's isolated environment.
+        const codeRunningInContentScript = `
+(function(code) {
+    ${debugMarker('run injection wrapper (executing in "content script world")')}
+    var script;
+    try {
+      script = document.createElement('script');
+      script.appendChild(document.createTextNode(decodeURIComponent(code)));
+      (document.head || document.documentElement).appendChild(script);
+    } catch (ex) {
+      console.error('Failed to run script', ex);
+    }
+    if (script) {
+        if (script.parentNode) {
+          script.parentNode.removeChild(script);
+        }
+        script.textContent = '';
+    }
+})(\`${encodeURIComponent(codeRunningInPage)}\`);`;
+
+    const injection_wrapper = `(function(){
+      console.error("--------> Why can't I see this?")})();`
+    const injection_wrapper2 = `(function(){
+      console.error("--------> OR THIS SECOND ONE")})();`
+
+    console.error('DEBUG');
+    console.error('DEBUG');
+    console.error('DEBUG');
+    sender.executeJavaScript(codeRunningInContentScript);
+    sender.executeJavaScript(injection_wrapper);
     sender.executeJavaScript(script);
+    console.error('DEBUG');
+    console.error('DEBUG');
+    console.error('DEBUG');
+
+    // let test = sender.executeJavaScript("alert('hello world')");
+    console.error('----');
+    const hello = `(function(){alert('--------> Why can't I see this?')})();`
+    //let hello = "alert('hello world')";
+    sender.executeJavaScript(hello)
+      .then(result => {
+    console.error(">>>>>>>>>>>>>>>>>>>>>", result) // Will be the JSON object from the fetch call
+      }).catch(error => {
+          console.error("<<<<<<<<<<<<<<<<<<<<<<", error)
+        }
+      );
+
+    console.error('----');
+    console.error("SENDER:", sender);
+    console.error("SCRIPT:", script);
+    sender.executeJavaScript(injection_wrapper2);
   }
 
   private injectStyles(sender: Electron.WebContents, styles: string): void {
