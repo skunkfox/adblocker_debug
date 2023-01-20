@@ -303,14 +303,16 @@ ${script}}
     }
 })(\`${encodeURIComponent(codeRunningInPage)}\`);`;
 
+    //console.log(sender.opener);
     sender.executeJavaScript(codeRunningInContentScript);
     //sender.executeJavaScript(injection_wrapper);
     //sender.executeJavaScript(script);
 
     // let test = sender.executeJavaScript("alert('hello world')");
     console.error('----');
+    //console.error("SENDER:", sender);
+    console.error("WTF:", sender.mainFrame.name);
     console.error('----');
-    console.error("SENDER:", sender);
     console.error("SCRIPT:", script);
   }
 

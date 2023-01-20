@@ -5,7 +5,8 @@ import { readFileSync, writeFileSync } from 'fs';
 import { ElectronBlocker, fullLists, Request } from '@cliqz/adblocker-electron';
 
 function getUrlToLoad(): string {
-  let url = 'https://www.youtube.com/watch?v=-t9XZgk6kNY';
+  let url = 'https://www.youtube.com/watch?v=BmA_T72PXcQ';
+  // let url = 'https://www.youtube.com/watch?v=-t9XZgk6kNY';
   // let url = 'https://google.com';
   if (process.argv[process.argv.length - 1].endsWith('.js') === false) {
     url = process.argv[process.argv.length - 1];
